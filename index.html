@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IntelProbe — Military & Tech Intelligence</title>
+    <style>
+        :root {
+            --bg:      #070A0E;
+            --bg2:     #0C1017;
+            --bg3:     #111820;
+            --border:  #1A2535;
+            --border2: #243040;
+            --gold:    #C8A84B;
+            --gold2:   #E8C96A;
+            --gold-dim:rgba(200,168,75,0.10);
+            --gold-b:  rgba(200,168,75,0.28);
+            --blue:    #3B7DD8;
+            --blue-dim:rgba(59,125,216,0.10);
+            --green:   #2ECC71;
+            --red:     #E74C3C;
+            --white:   #EAF0F6;
+            --text:    #8A9BB0;
+            --mono:    'Courier New', Courier, monospace;
+            --display: 'Arial Black', 'Impact', Arial, sans-serif;
+        }
+
+        * { margin:0; padding:0; box-sizing:border-box; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--mono);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content:'';
+            position:fixed; inset:0;
+            background-image:
+                linear-gradient(rgba(200,168,75,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(200,168,75,0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events:none;
+            z-index:0;
+        }
+
+        header {
+            position: sticky; top:0; z-index:100;
+            background: rgba(7,10,14,0.97);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 28px;
+            height: 58px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            font-family: var(--display);
+            font-weight: 700;
+            font-size: 1.35rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--white);
+        }
+
+        .logo span { color: var(--gold); }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .sys-badge {
+            font-size: 0.65rem;
+            letter-spacing: 2px;
+            color: var(--gold);
+            background: var(--gold-dim);
+            border: 1px solid var(--gold-b);
+            padding: 4px 12px;
+            border-radius: 2px;
+        }
+
+        .query-count {
+            font-size: 0.65rem;
+            color: var(--text);
+            letter-spacing: 1px;
+        }
+
+        .search-section {
+            position: relative;
+            z-index: 1;
+            max-width: 780px;
+            margin: 0 auto;
+            padding: 48px 20px 32px;
+        }
+
+        .search-eyebrow {
+            font-size: 0.65rem;
+            letter-spacing: 4px;
+            color: var(--gold);
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .search-eyebrow::before {
+            content:'';
+            width:30px;height:1px;
+            background: var(--gold);
+            opacity: 0.5;
+        }
+
+        .search-title {
+            font-family: var(--display);
+            font-size: clamp(2rem, 5vw, 3.2rem);
+            font-weight: 700;
+            color: var(--white);
+            letter-spacing: 1px;
+            line-height: 1.1;
+            margin-bottom: 8px;
+        }
+
+        .search-title em {
+            font-style: normal;
+            color: var(--gold);
+        }
+
+        .search-sub {
+            font-size: 0.78rem;
+            color: var(--text);
+            letter-spacing: 1px;
+            margin-bottom: 32px;
+            line-height: 1.6;
+        }
+
+        .search-wrap {
+            position: relative;
+            display: flex;
+            gap: 0;
+        }
+
+        .search-input {
+            flex: 1;
+            background: var(--bg2);
+            border: 1px solid var(--border2);
+            border-right: none;
+            color: var(--white);
+            font-family: var(--display);
+            font-size: 1.15rem;
+            font-weight: 600;
+            letter-spacing: 2px;
+            padding: 16px 20px;
+            outline: none;
+            border-radius: 3px 0 0 3px;
+            text-transform: uppercase;
+            transition: border-color 0.2s;
+        }
+
+        .search-input::placeholder {
+            color: var(--border2);
+            font-weight: 400;
+            letter-spacing: 1px;
+            text-transform: none;
+        }
+
+        .search-input:focus { border-color: var(--gold); }
+
+        .btn-search {
+            background: var(--gold);
+            border: 1px solid var(--gold);
+            color: #0A0A0A;
+            padding: 16px 28px;
+            font-family: var(--display);
+            font-weight: 700;
+            font-size: 0.9rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            cursor: pointer;
+            border-radius: 0 3px 3px 0;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .btn-search:hover { background: var(--gold2); }
+        .btn-search:disabled { opacity:0.5; cursor:not-allowed; }
+
+        .quick-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .quick-tag {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 5px 14px;
+            font-size: 0.72rem;
+            letter-spacing: 1px;
+            cursor: pointer;
+            border-radius: 2px;
+            transition: all 0.2s;
+            font-family: var(--mono);
+        }
+
+        .quick-tag:hover { border-color: var(--gold); color: var(--gold); }
+
+        #content {
+            max-width: 780px;
+            margin: 0 auto;
+            padding: 0 20px 80px;
+            position: relative;
+            z-index:1;
+        }
+
+        .loading-panel {
+            display: none;
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 32px;
+            margin-bottom: 20px;
+        }
+
+        .loading-panel.visible { display: block; }
+
+        .load-title {
+            font-family: var(--display);
+            font-size: 0.8rem;
+            letter-spacing: 4px;
+            color: var(--gold);
+            text-transform: uppercase;
+            margin-bottom: 20px;
+        }
+
+        .load-steps { display: flex; flex-direction: column; gap: 10px; }
+
+        .load-step {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.72rem;
+            letter-spacing: 1px;
+            color: var(--text);
+            opacity: 0;
+            transition: opacity 0.3s, color 0.3s;
+        }
+
+        .load-step.active { opacity: 1; color: var(--gold); }
+        .load-step.done   { opacity: 1; color: var(--green); }
+        .step-bullet { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink:0; }
+
+        .result-masthead {
+            display: none;
+            border: 1px solid var(--border2);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .result-masthead.visible { display: block; }
+
+        .masthead-top {
+            background: var(--bg3);
+            border-bottom: 1px solid var(--border2);
+            padding: 20px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .masthead-id {
+            font-size: 0.62rem;
+            letter-spacing: 3px;
+            color: var(--gold);
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .masthead-name {
+            font-family: var(--display);
+            font-size: clamp(1.8rem, 5vw, 2.8rem);
+            font-weight: 700;
+            color: var(--white);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            line-height: 1;
+        }
+
+        .masthead-origin {
+            font-size: 0.72rem;
+            color: var(--text);
+            letter-spacing: 1px;
+            margin-top: 6px;
+        }
+
+        .masthead-score {
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        .score-ring {
+            width: 72px; height: 72px;
+            border-radius: 50%;
+            border: 3px solid var(--gold);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: var(--gold-dim);
+            box-shadow: 0 0 20px rgba(200,168,75,0.2);
+        }
+
+        .score-num {
+            font-family: var(--display);
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--gold);
+            line-height: 1;
+        }
+
+        .score-denom { font-size: 0.6rem; color: var(--text); letter-spacing: 1px; }
+        .score-label { font-size: 0.6rem; color: var(--text); letter-spacing: 2px; margin-top: 4px; }
+
+        .masthead-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            border-top: 1px solid var(--border);
+        }
+
+        @media(max-width:500px){ .masthead-stats{grid-template-columns:repeat(2,1fr)} }
+
+        .mstat {
+            padding: 14px 20px;
+            border-right: 1px solid var(--border);
+        }
+
+        .mstat:last-child { border-right: none; }
+
+        .mstat-val {
+            font-family: var(--display);
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--white);
+            line-height: 1;
+        }
+
+        .mstat-label { font-size: 0.6rem; letter-spacing: 2px; color: var(--text); text-transform: uppercase; margin-top: 3px; }
+
+        .intel-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        @media(max-width:540px){ .intel-grid{grid-template-columns:1fr} }
+
+        .intel-card {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+            transition: border-color 0.2s;
+        }
+
+        .intel-card:hover { border-color: var(--border2); }
+        .intel-card.full { grid-column: 1/-1; }
+        .intel-card.gold-accent { border-color: var(--gold-b); }
+
+        .intel-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+        }
+
+        .intel-card.combat::before  { background: linear-gradient(90deg, var(--red), transparent); }
+        .intel-card.integrity::before { background: linear-gradient(90deg, var(--blue), transparent); }
+        .intel-card.unique::before  { background: linear-gradient(90deg, var(--gold), transparent); }
+        .intel-card.value::before   { background: linear-gradient(90deg, var(--green), transparent); }
+        .intel-card.adapt::before   { background: linear-gradient(90deg, #9B59B6, transparent); }
+        .intel-card.history::before { background: linear-gradient(90deg, #E67E22, transparent); }
+
+        .card-eyebrow {
+            font-size: 0.6rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-eyebrow.combat   { color: var(--red); }
+        .card-eyebrow.integrity{ color: var(--blue); }
+        .card-eyebrow.unique   { color: var(--gold); }
+        .card-eyebrow.value    { color: var(--green); }
+        .card-eyebrow.adapt    { color: #9B59B6; }
+        .card-eyebrow.history  { color: #E67E22; }
+
+        .card-content {
+            font-size: 0.82rem;
+            line-height: 1.7;
+            color: var(--text);
+        }
+
+        .card-content strong {
+            color: var(--white);
+            font-family: var(--display);
+            font-size: 1rem;
+            font-weight: 600;
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        .card-content ul { list-style: none; padding: 0; }
+
+        .card-content ul li {
+            padding: 4px 0;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            font-size: 0.78rem;
+        }
+
+        .card-content ul li:last-child { border-bottom: none; }
+
+        .card-content ul li::before {
+            content: '▸';
+            color: var(--gold);
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        .rating-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+            font-size: 0.72rem;
+        }
+
+        .rating-label { width: 100px; color: var(--text); letter-spacing: 1px; flex-shrink:0; }
+        .rating-bar-wrap { flex:1; height:4px; background:var(--bg3); border-radius:2px; overflow:hidden; }
+        .rating-bar { height:100%; border-radius:2px; transition: width 1s ease; }
+        .rating-val { width: 32px; text-align:right; color: var(--white); font-family: var(--display); font-weight:600; }
+
+        .articles-section {
+            display: none;
+            margin-bottom: 20px;
+        }
+
+        .articles-section.visible { display: block; }
+
+        .articles-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        @media(max-width:540px){ .articles-grid{grid-template-columns:1fr} }
+
+        .article-card {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 16px;
+            transition: border-color 0.2s;
+            cursor: pointer;
+            text-decoration: none;
+            display: block;
+        }
+
+        .article-card:hover { border-color: var(--gold-b); }
+
+        .article-num {
+            font-size: 0.6rem;
+            color: var(--gold);
+            letter-spacing: 2px;
+            margin-bottom: 6px;
+        }
+
+        .article-title {
+            font-family: var(--display);
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--white);
+            line-height: 1.3;
+            margin-bottom: 6px;
+        }
+
+        .article-source {
+            font-size: 0.65rem;
+            color: var(--text);
+            letter-spacing: 1px;
+        }
+
+        .section-divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.62rem;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: var(--text);
+            margin: 20px 0 14px;
+        }
+
+        .section-divider::after {
+            content:'';flex:1;height:1px;background:var(--border);
+        }
+
+        .export-row {
+            display: none;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .export-row.visible { display: flex; flex-wrap:wrap; }
+
+        .btn-export {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 8px 18px;
+            font-family: var(--mono);
+            font-size: 0.7rem;
+            letter-spacing: 1px;
+            cursor: pointer;
+            border-radius: 2px;
+            transition: all 0.2s;
+        }
+
+        .btn-export:hover { border-color: var(--gold); color: var(--gold); }
+
+        .search-history {
+            margin-top: 40px;
+            display: none;
+        }
+
+        .search-history.visible { display: block; }
+
+        .hist-items { display: flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+
+        .hist-tag {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 5px 14px;
+            font-size: 0.7rem;
+            letter-spacing: 1px;
+            cursor: pointer;
+            border-radius: 2px;
+            transition: all 0.2s;
+            text-transform: uppercase;
+        }
+
+        .hist-tag:hover { border-color: var(--gold); color: var(--gold); }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">Intel<span>Probe</span></div>
+        <div class="header-right">
+            <div class="sys-badge">CLASSIFIED INTEL</div>
+            <div class="query-count" id="q-count">0 QUERIES</div>
+        </div>
+    </header>
+
+    <!-- SEARCH HERO -->
+    <div class="search-section">
+        <div class="search-eyebrow">Military & Technical Intelligence System</div>
+        <div class="search-title">Analyze Any <em>Weapon,</em><br>Platform or System</div>
+        <div class="search-sub">Enter a military or technical product — get combat capabilities, integrity score, market value, history and full intelligence brief.</div>
+        <div class="search-wrap">
+            <input class="search-input" id="search-input" type="text" placeholder="e.g. F-35, KAAN, Bayraktar TB2..."
+                onkeydown="if(event.key==='Enter') doSearch()">
+            <button class="btn-search" id="search-btn" onclick="doSearch()">▶ ANALYZE</button>
+        </div>
+        <div class="quick-tags">
+            <span class="quick-tag" onclick="quickSearch('F-35 Lightning II')">F-35 Lightning II</span>
+            <span class="quick-tag" onclick="quickSearch('Bayraktar TB2')">Bayraktar TB2</span>
+            <span class="quick-tag" onclick="quickSearch('KAAN Fighter Jet')">KAAN</span>
+            <span class="quick-tag" onclick="quickSearch('S-400 Missile System')">S-400</span>
+            <span class="quick-tag" onclick="quickSearch('AK-47')">AK-47</span>
+            <span class="quick-tag" onclick="quickSearch('HIMARS')">HIMARS</span>
+            <span class="quick-tag" onclick="quickSearch('Eurofighter Typhoon')">Eurofighter</span>
+            <span class="quick-tag" onclick="quickSearch('M1 Abrams Tank')">M1 Abrams</span>
+        </div>
+    </div>
+
+    <!-- CONTENT -->
+    <div id="content">
+
+        <!-- LOADING PANEL -->
+        <div class="loading-panel" id="loading-panel">
+            <div class="load-title">// Retrieving Intelligence Data</div>
+            <div class="load-steps" id="load-steps"></div>
+        </div>
+
+        <!-- RESULT MASTHEAD -->
+        <div class="result-masthead" id="result-masthead">
+            <div class="masthead-top">
+                <div>
+                    <div class="masthead-id" id="m-id">INTEL BRIEF — CLASSIFIED</div>
+                    <div class="masthead-name" id="m-name">—</div>
+                    <div class="masthead-origin" id="m-origin">—</div>
+                </div>
+                <div class="masthead-score">
+                    <div class="score-ring">
+                        <div class="score-num" id="m-score">—</div>
+                        <div class="score-denom">/10</div>
+                    </div>
+                    <div class="score-label">OVERALL</div>
+                </div>
+            </div>
+            <div class="masthead-stats" id="m-stats"></div>
+        </div>
+
+        <!-- ARTICLES SECTION -->
+        <div class="articles-section" id="articles-section">
+            <div class="section-divider">Top Intelligence Sources</div>
+            <div class="articles-grid" id="articles-grid"></div>
+        </div>
+
+        <!-- INTEL CARDS (dynamic) -->
+        <div id="intel-cards"></div>
+
+        <!-- EXPORT ROW -->
+        <div class="export-row" id="export-row">
+            <button class="btn-export" onclick="copyBrief()">📋 Copy Brief</button>
+            <button class="btn-export" onclick="clearResult()">✕ New Search</button>
+        </div>
+
+        <!-- SEARCH HISTORY -->
+        <div class="search-history" id="search-history">
+            <div class="section-divider">Recent Queries</div>
+            <div class="hist-items" id="hist-items"></div>
+        </div>
+    </div>
+
+    <script>
+        // ⚠️ REPLACE THIS WITH YOUR RENDER BACKEND URL
+        const BACKEND_URL = 'https://YOUR_BACKEND_URL/api/analyze';
+        // Example: 'https://intelprobe-api.onrender.com/api/analyze'
+
+        let searchHistory = [];
+        let queryCount = 0;
+        let lastResult = null;
+
+        // ── QUICK SEARCH ──
+        function quickSearch(term) {
+            document.getElementById('search-input').value = term;
+            doSearch();
+        }
+
+        // ── CLEAR ──
+        function clearResult() {
+            document.getElementById('result-masthead').classList.remove('visible');
+            document.getElementById('articles-section').classList.remove('visible');
+            document.getElementById('intel-cards').innerHTML = '';
+            document.getElementById('export-row').classList.remove('visible');
+            document.getElementById('loading-panel').classList.remove('visible');
+        }
+
+        // ── MAIN SEARCH ──
+        async function doSearch() {
+            const query = document.getElementById('search-input').value.trim();
+            if (!query) return;
+
+            clearResult();
+            document.getElementById('search-btn').disabled = true;
+
+            // loading animation
+            const loadPanel = document.getElementById('loading-panel');
+            loadPanel.classList.add('visible');
+            const steps = [
+                'Scanning military databases...',
+                'Retrieving combat specifications...',
+                'Analyzing procurement records & market value...',
+                'Cross-referencing open-source intelligence...',
+                'Compiling capability assessment...',
+                'Generating intelligence brief...',
+            ];
+            const stepsEl = document.getElementById('load-steps');
+            stepsEl.innerHTML = steps.map((s, i) =>
+                `<div class="load-step" id="ls-${i}"><div class="step-bullet"></div>${s}</div>`
+            ).join('');
+
+            let si = 0;
+            const stepTimer = setInterval(() => {
+                if (si > 0) document.getElementById(`ls-${si - 1}`).className = 'load-step done';
+                if (si < steps.length) {
+                    document.getElementById(`ls-${si}`).className = 'load-step active';
+                    si++;
+                } else {
+                    clearInterval(stepTimer);
+                }
+            }, 420);
+
+            try {
+                // ── CALL YOUR BACKEND ──
+                const res = await fetch(BACKEND_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query: query })
+                });
+
+                if (!res.ok) throw new Error(`Server responded with ${res.status}`);
+
+                const result = await res.json();
+
+                clearInterval(stepTimer);
+                steps.forEach((_, i) => {
+                    const el = document.getElementById(`ls-${i}`);
+                    if (el) el.className = 'load-step done';
+                });
+
+                // Track history
+                queryCount++;
+                document.getElementById('q-count').textContent = `${queryCount} QUERIES`;
+                if (!searchHistory.includes(query)) {
+                    searchHistory.unshift(query);
+                    if (searchHistory.length > 8) searchHistory.pop();
+                }
+
+                lastResult = result;
+                setTimeout(() => {
+                    loadPanel.classList.remove('visible');
+                    renderResult(result);
+                }, 400);
+
+            } catch (e) {
+                clearInterval(stepTimer);
+                loadPanel.classList.remove('visible');
+                document.getElementById('intel-cards').innerHTML = `
+                    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:32px;text-align:center;color:var(--text)">
+                        <div style="font-size:1.5rem;margin-bottom:12px">⚠</div>
+                        <div style="font-family:var(--display);color:var(--white);margin-bottom:8px">INTELLIGENCE RETRIEVAL FAILED</div>
+                        <div style="font-size:0.78rem">${e.message}. Check backend connection.</div>
+                    </div>`;
+                document.getElementById('search-btn').disabled = false;
+            }
+        }
+
+        // ── RENDER RESULT ──
+        function renderResult(r) {
+            // Masthead
+            document.getElementById('m-id').textContent = `INTEL BRIEF — ${r.category?.toUpperCase() || 'MILITARY SYSTEM'}`;
+            document.getElementById('m-name').textContent = r.name;
+            document.getElementById('m-origin').textContent = `${r.country} · Est. ${r.year_introduced} · ${r.value_usd}`;
+            document.getElementById('m-score').textContent = r.overall_score;
+
+            const stats = (r.stats || []).slice(0, 4);
+            document.getElementById('m-stats').innerHTML = stats.map(s => `
+                <div class="mstat">
+                    <div class="mstat-val">${s.value}</div>
+                    <div class="mstat-label">${s.label}</div>
+                </div>`).join('');
+            document.getElementById('result-masthead').classList.add('visible');
+
+            // Articles
+            if (r.articles?.length) {
+                document.getElementById('articles-grid').innerHTML = r.articles.slice(0, 10).map((a, i) => `
+                    <div class="article-card" onclick="window.open('${a.url}','_blank')">
+                        <div class="article-num">// ARTICLE ${String(i + 1).padStart(2, '0')}</div>
+                        <div class="article-title">${a.title}</div>
+                        <div class="article-source">↗ ${a.source}</div>
+                    </div>`).join('');
+                document.getElementById('articles-section').classList.add('visible');
+            }
+
+            // Intel cards
+            const cards = document.getElementById('intel-cards');
+
+            const combatRatings = (r.combat_capabilities?.ratings || []).map(rt => `
+                <div class="rating-row">
+                    <div class="rating-label">${rt.label}</div>
+                    <div class="rating-bar-wrap">
+                        <div class="rating-bar" style="width:${rt.value * 10}%;background:${rt.value >= 8 ? '#E74C3C' : rt.value >= 6 ? '#E67E22' : '#3B7DD8'}"></div>
+                    </div>
+                    <div class="rating-val">${rt.value}</div>
+                </div>`).join('');
+
+            const combatPoints = (r.combat_capabilities?.points || []).map(p => `<li>${p}</li>`).join('');
+            const integrityPoints = (r.integrity?.points || []).map(p => `<li>${p}</li>`).join('');
+            const uniquePoints = (r.uniqueness?.points || []).map(p => `<li>${p}</li>`).join('');
+            const valuePoints = (r.value_analysis?.points || []).map(p => `<li>${p}</li>`).join('');
+            const adaptPoints = (r.adaptability?.points || []).map(p => `<li>${p}</li>`).join('');
+            const timeline = (r.history?.timeline || []).map(t => `
+                <div style="display:flex;gap:12px;padding:6px 0;border-bottom:1px solid var(--border);font-size:0.75rem;">
+                    <div style="color:var(--gold);font-family:var(--display);font-weight:600;min-width:40px">${t.year}</div>
+                    <div style="color:var(--text)">${t.event}</div>
+                </div>`).join('');
+
+            cards.innerHTML = `
+                <div class="section-divider">Intelligence Assessment</div>
+                <div class="intel-grid">
+                    <div class="intel-card combat full">
+                        <div class="card-eyebrow combat">⚔ Combat Capabilities</div>
+                        <div class="card-content">
+                            <strong>${r.combat_capabilities?.headline || ''}</strong>
+                            <ul>${combatPoints}</ul>
+                            <div style="margin-top:14px">${combatRatings}</div>
+                        </div>
+                    </div>
+                    <div class="intel-card integrity">
+                        <div class="card-eyebrow integrity">🛡 Structural Integrity</div>
+                        <div class="card-content">
+                            <strong>${r.integrity?.headline || ''}</strong>
+                            <ul>${integrityPoints}</ul>
+                        </div>
+                    </div>
+                    <div class="intel-card unique">
+                        <div class="card-eyebrow unique">★ Uniqueness</div>
+                        <div class="card-content">
+                            <strong>${r.uniqueness?.headline || ''}</strong>
+                            <ul>${uniquePoints}</ul>
+                        </div>
+                    </div>
+                    <div class="intel-card value">
+                        <div class="card-eyebrow value">💰 Market Value</div>
+                        <div class="card-content">
+                            <strong>${r.value_analysis?.headline || ''}</strong>
+                            <ul>${valuePoints}</ul>
+                        </div>
+                    </div>
+                    <div class="intel-card adapt">
+                        <div class="card-eyebrow adapt">🔧 Adaptability & Variants</div>
+                        <div class="card-content">
+                            <strong>${r.adaptability?.headline || ''}</strong>
+                            <ul>${adaptPoints}</ul>
+                        </div>
+                    </div>
+                    <div class="intel-card history full gold-accent">
+                        <div class="card-eyebrow history">📅 Brief History</div>
+                        <div class="card-content">
+                            <strong>${r.history?.headline || ''}</strong>
+                            <div style="margin-top:10px">${timeline}</div>
+                        </div>
+                    </div>
+                </div>`;
+
+            document.getElementById('export-row').classList.add('visible');
+            renderHistory();
+            document.getElementById('search-btn').disabled = false;
+            document.getElementById('intel-cards').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function renderHistory() {
+            if (!searchHistory.length) return;
+            document.getElementById('search-history').classList.add('visible');
+            document.getElementById('hist-items').innerHTML =
+                searchHistory.map(q => `<div class="hist-tag" onclick="quickSearch('${q}')">${q}</div>`).join('');
+        }
+
+        function copyBrief() {
+            if (!lastResult) return;
+            const r = lastResult;
+            const text = `INTELPROBE BRIEF: ${r.name}
+        Category: ${r.category} | Origin: ${r.country} | Since: ${r.year_introduced}
+        Overall Score: ${r.overall_score}/10 — ${r.score_rationale}
+        Value: ${r.value_usd} — ${r.value_note}
+
+        COMBAT: ${r.combat_capabilities?.headline}
+        INTEGRITY: ${r.integrity?.headline}
+        UNIQUENESS: ${r.uniqueness?.headline}
+        ADAPTABILITY: ${r.adaptability?.headline}
+        HISTORY: ${r.history?.headline}`;
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = event.target;
+                btn.textContent = '✓ Copied';
+                setTimeout(() => btn.textContent = '📋 Copy Brief', 2000);
+            });
+        }
+
+        // Expose functions to global scope
+        window.quickSearch = quickSearch;
+        window.doSearch = doSearch;
+        window.clearResult = clearResult;
+        window.copyBrief = copyBrief;
+    </script>
+</body>
+</html>
