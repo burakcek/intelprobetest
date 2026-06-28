@@ -4,6 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IntelProbe — Military & Tech Intelligence</title>
+
+    <!-- PWA Мета податоци -->
+    <link rel="manifest" href="/intelprobetest/manifest.json">
+    <meta name="theme-color" content="#C8A84B">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
     <style>
         :root {
             --bg:      #070A0E;
@@ -894,5 +901,19 @@
         window.clearResult = clearResult;
         window.copyBrief = copyBrief;
     </script>
+
+    <!-- PWA Service Worker регистрација -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/intelprobetest/sw.js')
+                .then(registration => {
+                    console.log('✅ Service Worker registered successfully');
+                })
+                .catch(error => {
+                    console.log('❌ Service Worker registration failed:', error);
+                });
+        }
+    </script>
+
 </body>
 </html>
